@@ -12,7 +12,7 @@ GSPREAD_CLIENT = gspread.authorize(SCOPED_CREDS)
 SHEET = GSPREAD_CLIENT.open("practise")
 
 
-def choose_sheet():
+def choose_worksheet():
     """
     Allow the user to choose the field where the expence belongs to.
     Run a while loop to collect a valid string of data from the user 
@@ -25,7 +25,7 @@ def choose_sheet():
         valid_choice = ("a", "b", "c", "d", "e", "f", "g", "h")
 
 
-        if validate_input(choice, valid_choice):
+        if validate_input_choice(choice, valid_choice):
             print("Valid input")
             break
     
@@ -39,61 +39,81 @@ def choose_month():
         decided_month = input("Input a, b, c, d, e, f, g, h, i, j, k, l\n").lower()
         new_valid_choice = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l")
     
-        if validate_input(decided_month, new_valid_choice):
+        if validate_input_choice(decided_month, new_valid_choice):
             print("Valid input")
             break
     return decided_month
 
-def find_cell(expense, period):
+def get_expense_data():
+    """
+    Get expense input from the user.
+    Run a while loop to collect a valid string of data from the user
+    via the terminal, which must be a string of a number.
+    The loop will repeatedly request data, until it is valid.
+    """
+    while True:
+        print("Please enter how much was your expence.")
+        print("Data should be a decimal number.")
+        print("Example: 109.08\n")
+
+        data = input("Enter your data here: ")
+
+        if validate_input_data(data):
+            print("Data is valid!")
+            break
+
+    return data
+
+def find_cell(chosen_worksheet, period):
     """
     Locate the cell that the user has chosen to update
     """
-    if expense == "a":
-        expense = SHEET.worksheet("gas")
-    elif expense == "b":
-        expense = SHEET.worksheet("electricity")
-    elif expense == "c":
-        expense = SHEET.worksheet("water")
-    elif expense == "d":
-        expense = SHEET.worksheet("council")
-    elif expense == "e":
-        expense = SHEET.worksheet("phone")
-    elif expense == "f":
-        expense = SHEET.worksheet("car")
-    elif expense == "g":
-        expense = SHEET.worksheet("food")
+    if chosen_worksheet == "a":
+        chosen_worksheet = SHEET.worksheet("gas")
+    elif chosen_worksheet == "b":
+        chosen_worksheet = SHEET.worksheet("electricity")
+    elif chosen_worksheet == "c":
+        chosen_worksheet = SHEET.worksheet("water")
+    elif chosen_worksheet == "d":
+        chosen_worksheet = SHEET.worksheet("council")
+    elif chosen_worksheet == "e":
+        chosen_worksheet = SHEET.worksheet("phone")
+    elif chosen_worksheet == "f":
+        chosen_worksheet = SHEET.worksheet("car")
+    elif chosen_worksheet == "g":
+        chosen_worksheet = SHEET.worksheet("food")
     else:
-        expense = SHEET.worksheet("total")
+        chosen_worksheet = SHEET.worksheet("total")
     
     if period == "a":
-        period = expense.col_values(1)
+        period = chosen_worksheet.col_values(1)
     elif period == "b":
-        period = expense.col_values(2)
+        period = chosen_worksheet.col_values(2)
     elif period == "c":
-        period = expense.col_values(3)
+        period = chosen_worksheet.col_values(3)
     elif period == "d":
-        period = expense.col_values(4)
+        period = chosen_worksheet.col_values(4)
     elif period == "e":
-        period = expense.col_values(5)
+        period = chosen_worksheet.col_values(5)
     elif period == "f":
-        period = expense.col_values(6)
+        period = chosen_worksheet.col_values(6)
     elif period == "g":
-        period = expense.col_values(7)
+        period = chosen_worksheet.col_values(7)
     elif period == "h":
-        period = expense.col_values(8)
+        period = chosen_worksheet.col_values(8)
     elif period == "i":
-        period = expense.col_values(9)
+        period = chosen_worksheet.col_values(9)
     elif period == "j":
-        period = expense.col_values(10)
+        period = chosen_worksheet.col_values(10)
     elif period == "k":
-        period = expense.col_values(11)
+        period = chosen_worksheet.col_values(11)
     else:
-        period = expense.col_values(12)
+        period = chosen_worksheet.col_values(12)
 
-    print(expense, period)
+    print(chosen_worksheet, period)
     
 
-def validate_input(value, possible_choice):
+def validate_input_choice(value, possible_choice):
     """
     Raise a value error if the value is not correct 
     or if it's not exactly 1
@@ -115,8 +135,22 @@ def validate_input(value, possible_choice):
 
     return True
 
-expense_kind = choose_sheet()
+def validate_input_data(value):
+    """
+    Inside the try, converts the string value into floating point number.
+    Raises ValueError if string cannot be converted into float.
+    """
+    try:
+        float(value)
+    except ValueError as e:
+        print(f"Invalid data: {e}, please try again.\n")
+        return False
+
+    return True
+
+picked_worksheet = choose_worksheet()
 month = choose_month()
-find_cell(expense_kind, month)
+find_cell(picked_worksheet, month)
+get_expense_data()
     
 
