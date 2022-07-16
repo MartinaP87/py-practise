@@ -22,10 +22,8 @@ def choose_worksheet():
     while True:
         print("Please select what kind of expense you are updating today:\na: Gas bill,\nb: Electricity bill,\nc: Water bill,\nd: Council tax,\ne: Phone bill,\nf: Car expenses,\ng: Food expenses,\nh: If you only want to view the total of your monthly expenses.")
         choice = input("Input a, b, c, d, e, f, g, h\n").lower()
-        valid_choice = ("a", "b", "c", "d", "e", "f", "g", "h")
-
-
-        if validate_input_choice(choice, valid_choice):
+        
+        if validate_first_input_choice(choice):
             print("Valid input")
             break
     
@@ -34,35 +32,38 @@ def choose_worksheet():
 
 def choose_month():
     while True:
-        print("Now choose the month that you wish to update or, in case you chose h, month of which you want to view the total expences.")
-        print("a: January,\nb: February,\nc: March,\nd: April,\ne: May,\nf: June,\ng: July,\nh: August,\ni: September,\nj: October,\nk: November,\nl: December")
-        decided_month = input("Input a, b, c, d, e, f, g, h, i, j, k, l\n").lower()
-        new_valid_choice = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l")
-    
-        if validate_input_choice(decided_month, new_valid_choice):
+        print("Now choose the month that you wish to update or, in case you chose h,the month of which you want to view the total expences.")
+        print("1: January,\n2: February,\n3: March,\n4: April,\n5: May,\n6: June,\n7: July,\n8: August,\n9: September,\n10: October,\n11: November,\n12: December")
+        decided_month = input("Input 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12\n").lower()
+        
+        if validate_second_input_choice(decided_month):
             print("Valid input")
             break
     return decided_month
 
-def get_expense_data():
+
+def get_expense_data(chosen_worksheet):
     """
     Get expense input from the user.
     Run a while loop to collect a valid string of data from the user
     via the terminal, which must be a string of a number.
     The loop will repeatedly request data, until it is valid.
     """
-    while True:
-        print("Please enter how much was your expence.")
-        print("Data should be a decimal number.")
-        print("Example: 109.08\n")
+    if chosen_worksheet != "h":
+        while True:
+            print("Please enter how much was your expence.")
+            print("Data should be a decimal number.")
+            print("Example: 109.08\n")
 
-        data = input("Enter your data here: ")
+            data = input("Enter your data here: ")
 
-        if validate_input_data(data):
-            print("Data is valid!")
-            break
+            if validate_input_data(data):
+                print("Data is valid!")
+                break
 
-    return data
+        return data
+    else:
+        view_total_data(month)
 
 def find_worksheet(chosen_worksheet):
     """
@@ -86,52 +87,33 @@ def find_worksheet(chosen_worksheet):
         chosen_worksheet = SHEET.worksheet("total")
     print(chosen_worksheet)
     return chosen_worksheet
-    
-def find_column(column_number):
-    if column_number == "a":
-        column_number = 1
-    elif column_number == "b":
-        column_number = 2
-    elif column_number == "c":
-        column_number = 3
-    elif column_number == "d":
-        column_number = 4
-    elif column_number == "e":
-        column_number = 5
-    elif column_number == "f":
-        column_number = 6
-    elif column_number == "g":
-        column_number = 7
-    elif column_number == "h":
-        column_number = 8
-    elif column_number == "i":
-        column_number = 9
-    elif column_number == "j":
-        column_number = 10
-    elif column_number == "k":
-        column_number = 11
-    else:
-        column_number = 12
-    print(column_number)
-    return(column_number)
 
 def update_worksheet(cost, worksheet, column):
     """
     Receives a floating point number to be inserted into a worksheet.
     Update the relevant worksheet with the data provided
     """
-    number = len(worksheet.col_values(column)) + 1
-    worksheet.update_cell(number, column, cost)
-    #worksheet.append_row(cost)
-    print(number)
+    row = len(worksheet.col_values(column)) + 1
+    worksheet.update_cell(row, column, cost)
     
     
+def view_total_data(column):
+    """
+    Access the value of the total expenses
+    for the selected month
+    """
+    total_worksheet = SHEET.worksheet("total")
+    row = len(total_worksheet.col_values(column)) 
+    cell = total_worksheet.cell(row, column).value
+    month_name = total_worksheet.cell(1, column).value
+    print(f"The total of your expenses of {month_name} is £ {cell}")
 
-def validate_input_choice(value, possible_choice):
+def validate_first_input_choice(value):
     """
     Raise a value error if the value is not correct 
     or if it's not exactly 1
     """
+    possible_choice = ("a", "b", "c", "d", "e", "f", "g", "h")
     try:
         value in possible_choice
         if len(value) != 1:
@@ -145,6 +127,24 @@ def validate_input_choice(value, possible_choice):
     
     except ValueError as e:
         print(f"invalid data: {e}. Please try again.\n")
+        return False
+
+    return True
+
+
+def validate_second_input_choice(value):
+    """
+    Raise a value error if the value is not correct 
+    or if it's not a number
+    """
+    try:
+        month_number = int(value)
+        if month_number < 1 or month_number > 12:
+            raise ValueError(
+                f"Only values between 1 and 12 are acceptable, you entered {value}"
+	        )  
+    except ValueError as e:
+        print(f"Invalid data: {e}, please try again.\n")
         return False
 
     return True
@@ -164,11 +164,10 @@ def validate_input_data(value):
 
 picked_worksheet = choose_worksheet()
 month = choose_month()
-expense = get_expense_data()
+expense = get_expense_data(picked_worksheet)
 
 worksheet_to_update = find_worksheet(picked_worksheet)
-column_to_update = find_column(month)
 
-update_worksheet(expense, worksheet_to_update, column_to_update)
+update_worksheet(expense, worksheet_to_update, month)
     
 
