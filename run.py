@@ -64,9 +64,9 @@ def get_expense_data():
 
     return data
 
-def find_cell(chosen_worksheet, period):
+def find_worksheet(chosen_worksheet):
     """
-    Locate the cell that the user has chosen to update
+    Locate the worksheet that the user has chosen to update
     """
     if chosen_worksheet == "a":
         chosen_worksheet = SHEET.worksheet("gas")
@@ -84,33 +84,47 @@ def find_cell(chosen_worksheet, period):
         chosen_worksheet = SHEET.worksheet("food")
     else:
         chosen_worksheet = SHEET.worksheet("total")
+    print(chosen_worksheet)
+    return chosen_worksheet
     
-    if period == "a":
-        period = chosen_worksheet.col_values(1)
-    elif period == "b":
-        period = chosen_worksheet.col_values(2)
-    elif period == "c":
-        period = chosen_worksheet.col_values(3)
-    elif period == "d":
-        period = chosen_worksheet.col_values(4)
-    elif period == "e":
-        period = chosen_worksheet.col_values(5)
-    elif period == "f":
-        period = chosen_worksheet.col_values(6)
-    elif period == "g":
-        period = chosen_worksheet.col_values(7)
-    elif period == "h":
-        period = chosen_worksheet.col_values(8)
-    elif period == "i":
-        period = chosen_worksheet.col_values(9)
-    elif period == "j":
-        period = chosen_worksheet.col_values(10)
-    elif period == "k":
-        period = chosen_worksheet.col_values(11)
+def find_column(column_number):
+    if column_number == "a":
+        column_number = 1
+    elif column_number == "b":
+        column_number = 2
+    elif column_number == "c":
+        column_number = 3
+    elif column_number == "d":
+        column_number = 4
+    elif column_number == "e":
+        column_number = 5
+    elif column_number == "f":
+        column_number = 6
+    elif column_number == "g":
+        column_number = 7
+    elif column_number == "h":
+        column_number = 8
+    elif column_number == "i":
+        column_number = 9
+    elif column_number == "j":
+        column_number = 10
+    elif column_number == "k":
+        column_number = 11
     else:
-        period = chosen_worksheet.col_values(12)
+        column_number = 12
+    print(column_number)
+    return(column_number)
 
-    print(chosen_worksheet, period)
+def update_worksheet(cost, worksheet, column):
+    """
+    Receives a floating point number to be inserted into a worksheet.
+    Update the relevant worksheet with the data provided
+    """
+    number = len(worksheet.col_values(column)) + 1
+    worksheet.update_cell(number, column, cost)
+    #worksheet.append_row(cost)
+    print(number)
+    
     
 
 def validate_input_choice(value, possible_choice):
@@ -150,7 +164,11 @@ def validate_input_data(value):
 
 picked_worksheet = choose_worksheet()
 month = choose_month()
-find_cell(picked_worksheet, month)
-get_expense_data()
+expense = get_expense_data()
+
+worksheet_to_update = find_worksheet(picked_worksheet)
+column_to_update = find_column(month)
+
+update_worksheet(expense, worksheet_to_update, column_to_update)
     
 
