@@ -134,6 +134,7 @@ def view_total_data(column):
 def update_totals(chosen_worksheet_letter):
     bills_letters = ("a", "b", "c", "d", "e")
     print("Updating total worksheet...")
+    
     if chosen_worksheet_letter in bills_letters:
         calculate_totals(2, SHEET.worksheet("monthly_bills"), "B2")
     elif chosen_worksheet_letter == "f":
@@ -142,7 +143,10 @@ def update_totals(chosen_worksheet_letter):
         calculate_totals(1, SHEET.worksheet("food"), "B4")
     else:
        print("Nothing to update")
+    print("Updating Year totals...")
+    calculate_year_totals()
     print("Updating totals in total worksheet...")
+    SHEET.worksheet("total").batch_clear(["B5:M5"])
     calculate_totals(2, SHEET.worksheet("total"), "B5")
     print("Total worksheet updated!")
     
@@ -161,11 +165,22 @@ def calculate_totals(row, worksheet, coordinate):
     print(total_list_of_list)
     total_worksheet.update(coordinate, total_list_of_list)
 
-def trying():
+def calculate_year_totals():
     total_worksheet = SHEET.worksheet("total")
-    colonna = total_worksheet.col_values(2)
-    print(colonna)
-trying()
+    total_list_of_list = []
+    total_list = []
+    column_number = len(total_worksheet.row_values(1))
+    for num in range(2, 5):
+        row = total_worksheet.row_values(num)
+        print(row)
+        row.pop(0)
+        int_row = [int(value) for value in row]
+        totals = sum(int_row)
+        total_list.append(totals)
+    total_list_of_list.append(total_list)
+    print(total_list_of_list)
+    total_worksheet.update("N2:N5", total_list_of_list)
+
 
 def validate_first_input_choice(value):
     """
@@ -240,8 +255,8 @@ def validate_input_data(value):
 
 
 
-#worksheet_letter = choose_worksheet()
-#worksheet_to_update = find_worksheet(worksheet_letter)
-#month = choose_month(worksheet_letter)
-#expense = get_expense_data(worksheet_letter, month, worksheet_to_update)
-#update_totals(worksheet_letter)
+worksheet_letter = choose_worksheet()
+worksheet_to_update = find_worksheet(worksheet_letter)
+month = choose_month(worksheet_letter)
+expense = get_expense_data(worksheet_letter, month, worksheet_to_update)
+update_totals(worksheet_letter)
