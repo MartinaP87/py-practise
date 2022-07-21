@@ -165,7 +165,7 @@ def totals_of_totals():
     the yearly costs of each expense type.
     Update the year totals column with the new values.
     """
-    print("Updating year totals...\n")
+    print("Updating Year Totals...\n")
     total_worksheet = SHEET.worksheet("total")
     total_worksheet.batch_clear(["N2:N4"])
     total_list = []
@@ -177,7 +177,7 @@ def totals_of_totals():
         total_list.append(totals)
     total_worksheet.update("N2:N4", total_list)
 
-    print("Updating monthly totals...\n")
+    print("Updating Monthly Totals...\n")
     total_worksheet.batch_clear(["B5:N5"])
     update_monthly_totals(2, SHEET.worksheet("total"), "B5")
     print("Total Worksheet Updated!\n")
@@ -261,7 +261,7 @@ def compare_budgets(column, ind_row):
     expense_name = budget_worksheet.col_values(1)[ind_row]
     try:
         tot_value = total_worksheet.col_values(month_column)[ind_row]
-        budget = budget_worksheet.col_values(month_column)[ind_row] 
+        budget = budget_worksheet.col_values(month_column)[ind_row]
         if int(tot_value) <= int(budget):
             difference = int(budget) - int(tot_value)
             print(f"Congratulations!\n \
@@ -274,6 +274,25 @@ exceeded your budget of £ {difference}.\n")
     except:
         print(f"You haven't set a budget for the {expense_name} in \
 {month_name}.\n")
+
+
+def calculate_total_budget(column, tot_index):
+    month_column = int(column) + 1
+    budget_worksheet = SHEET.worksheet("budget")
+    budget_column = budget_worksheet.col_values(month_column)
+    budget_column.pop(0)
+    row_num = tot_index + 1
+    try:
+        budget_column[tot_index]
+    except IndexError:
+        try:
+            int_column = [int(value) for value in budget_column]
+            budget_total = sum(int_column)
+            budget_worksheet.update_cell(row_num, month_column, budget_total)
+        except ValueError:
+            print("Total budget for this month is not present \
+and can't be calculated.\n\
+Please set a value for it or set values for each expense budget.\n")
 
 
 def exit_restart():
@@ -371,6 +390,7 @@ def main():
         rows_index = ind_rows_to_compare(worksheet_num)
         compare_budgets(month, rows_index)
         monthly_tot_index = 4
+        calculate_total_budget(month, monthly_tot_index)
         compare_budgets(month, monthly_tot_index)
     last_choice = exit_restart()
     if last_choice == "y":
