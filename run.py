@@ -15,23 +15,24 @@ SHEET = GSPREAD_CLIENT.open("practise")
 
 def choose_worksheet():
     """
-    Allow the user to choose the field to which the expense belongs.
+    Allow the user to choose the field to which the expense belongs
+    or to access total worksheet.
     Run a while loop to collect a valid string from the user
     via terminal, which must be a string of 1 letter within the possible
     choices. The loop will repeatedly request data until it is valid.
     """
     while True:
         print("Please select what kind of expense you are updating \
-today:\na: Gas bill,\nb: Electricity bill,\nc: Water bill\
-,\nd: Council tax,\ne: Phone bill,\nf: Car expenses,\ng\
-: Food expenses,\nh: If you only want to view the \
+today:\n1: Gas bill,\n2: Electricity bill,\n3: Water bill\
+,\n4: Council tax,\n5: Phone bill,\n6: Car expenses,\n7\
+: Food expenses,\n8: If you only want to view the \
 total of your monthly expenses.")
-        letter_choice = input("Input a, b, c, d, e, f, g, h\n").lower()
-        char_choice = ("a", "b", "c", "d", "e", "f", "g", "h")
-        if validate_first_input_choice(letter_choice, char_choice):
+        worksheet_choice = input("Input 1, 2, 3, 4, 5, 6, 7, 8:\n")
+        max_num_choices = 8
+        if validate_choice(worksheet_choice, max_num_choices):
             print("Valid input")
             break
-    return letter_choice
+    return worksheet_choice
 
 
 def choose_month():
@@ -42,41 +43,36 @@ def choose_month():
     The loop will repeatedly request data until it is valid.
     """
     while True:
-        print("Now choose the month you wish to update or,\
-in case you chose h, the month of which you want to view \
-the total expenses.")
+        print("Now choose the month for your operation.")
         print("1: January,\n2: February,\n3: March,\n\
 4: April,\n5: May,\n6: June,\n7: July,\n8: August,\
 \n9: September,\n10: October,\n11: November,\
 \n12: December\n")
         month_choice = input("Input 1, 2, 3, 4, 5, 6, 7,\
-8, 9, 10, 11, 12\n")
-        num_months = 12
+8, 9, 10, 11, 12:\n")
+        max_num_months = 12
 
-        if validate_second_input_choice(month_choice, num_months):
+        if validate_choice(month_choice, max_num_months):
             print("Valid input")
             break
     return month_choice
 
 
-def find_worksheet(chosen_letter):
+def find_worksheet(chosen_worksheet_num):
     """
     Locate the worksheet that the user has chosen to update
     """
-    bills_letters = ("a", "b", "c", "d", "e")
-    if chosen_letter in bills_letters:
-        chosen_letter = SHEET.worksheet("monthly_bills")
-    elif chosen_letter == "f":
-        chosen_letter = SHEET.worksheet("car")
-    elif chosen_letter == "g":
-        chosen_letter = SHEET.worksheet("food")
+    if chosen_worksheet_num == "6":
+        chosen_worksheet = SHEET.worksheet("car")
+    elif chosen_worksheet_num == "7":
+        chosen_worksheet = SHEET.worksheet("food")
     else:
-        chosen_letter = SHEET.worksheet("total")
-    print(chosen_letter)
-    return chosen_letter
+        chosen_worksheet = SHEET.worksheet("monthly_bills")
+    print(chosen_worksheet)
+    return chosen_worksheet
 
 
-def get_expense_data(chosen_letter, column, chosen_worksheet):
+def get_expense_data(chosen_worksheet_num, column, chosen_worksheet):
     """
     Get expense input from the user.
     Run a while loop to collect a valid string of data from the user
@@ -94,48 +90,39 @@ def get_expense_data(chosen_letter, column, chosen_worksheet):
             print("Data is valid!")
             break
 
-    update_worksheet(data, chosen_letter, column, chosen_worksheet)
+    update_worksheet(data, chosen_worksheet_num, column, chosen_worksheet)
     return data
 
 
-def update_worksheet(cost, chosen_letter, column, chosen_worksheet):
+def update_worksheet(data, chosen_worksheet_num, column, chosen_worksheet):
     """
-    With the data provided, update the first cell available
-    of the chosen month column in the relevant worksheet.
+    With the data provided, update the relevant cell
+    if the first choice was a monthly bill.
+    Otherwise, update the first cell available of
+    the chosen month column in the relevant worksheet.
     """
-    if chosen_letter == "a":
-        row = 2
-        column = int(column) + 1
-    elif chosen_letter == "b":
-        row = 3
-        column = int(column) + 1
-    elif chosen_letter == "c":
-        row = 4
-        column = int(column) + 1
-    elif chosen_letter == "d":
-        row = 5
-        column = int(column) + 1
-    elif chosen_letter == "e":
-        row = 6
+    if int(chosen_worksheet_num) <= 5:
+        row = int(chosen_worksheet_num) + 1
         column = int(column) + 1
     else:
         row = len(chosen_worksheet.col_values(column)) + 1
 
-    chosen_worksheet.update_cell(row, column, cost)
+    chosen_worksheet.update_cell(row, column, data)
     month_name = chosen_worksheet.row_values(1)[int(column) - 1]
     print(f"Your {chosen_worksheet} has been updated:\n\
-The new value for {month_name} is: {cost}")
+The new value for {month_name} is: {data}")
 
 
-def totals_to_update(chosen_letter):
+def totals_to_update(chosen_worksheet_num):
     """
-    Assigns the arguments to update monthly total function in base of the letter choice
+    Assign the arguments to update monthly total
+    function in base of the letter choice
     """
     print("Updating Total Worksheet...")
-    if chosen_letter == "f":
+    if chosen_worksheet_num == "6":
         update_monthly_totals(1, SHEET.worksheet("car"), "B3")
         totals_of_totals()
-    elif chosen_letter == "g":
+    elif chosen_worksheet_num == "7":
         update_monthly_totals(1, SHEET.worksheet("food"), "B4")
         totals_of_totals()
     else:
@@ -143,16 +130,16 @@ def totals_to_update(chosen_letter):
         totals_of_totals()
 
 
-def calculate_totals(row, worksheet):
+def calculate_totals(row, chosen_worksheet):
     """
-    Adds all values for each column in a worksheet and
-    returns the results as a list of list.
+    Add all values for each column in a worksheet and
+    return the results as a list of list.
     """
     total_list_of_list = []
     total_list = []
-    column_number = len(worksheet.row_values(1))
+    column_number = len(chosen_worksheet.row_values(1))
     for num in range(row, column_number + 1):
-        column = worksheet.col_values(num)
+        column = chosen_worksheet.col_values(num)
         column.pop(0)
         int_column = [int(value) for value in column]
         totals = sum(int_column)
@@ -161,22 +148,22 @@ def calculate_totals(row, worksheet):
     return total_list_of_list
 
 
-def update_monthly_totals(row, worksheet, coordinate):
+def update_monthly_totals(row, chosen_worksheet, coordinate):
     """
-    Updates total worksheet with the new calculated totals
+    Updat total worksheet with the new calculated totals
     in the respective row.
     """
     total_worksheet = SHEET.worksheet("total")
-    updated_list = calculate_totals(row, worksheet)
+    updated_list = calculate_totals(row, chosen_worksheet)
     total_worksheet.update(coordinate, updated_list)
 
 
 def totals_of_totals():
     """
-    Clears the previous values in the Year Totals column.
-    Sums the values of each row in the total worksheet to view
+    Clear the previous values in the Year Totals column.
+    Sum the values of each row in the total worksheet to view
     the yearly costs of each expense type.
-    Updates the year totals column with the new values.
+    Update the year totals column with the new values.
     """
     print("Updating year totals...")
     total_worksheet = SHEET.worksheet("total")
@@ -227,42 +214,88 @@ def choose_total():
     The loop will repeatedly request data until it is valid.
     """
     while True:
-        print("- If you would like to view the total \
-of your expenses by month, type: 1;\n- If you prefer \
+        print("Type 1:\n If you would like to view the total \
+of your expenses by month;\nType 2:\n If you prefer \
 to see how much you spent during this year so far, of an expense \
-type such as food or monthly bills, type: 2")
-        total_type = input("Input 1 or 2\n")
-        max_choice = 2
-        if validate_second_input_choice(total_type, max_choice):
+type such as food or monthly bills.")
+        total_choice = input("Input 1 or 2:\n")
+        max_choices = 2
+        if validate_choice(total_choice, max_choices):
             print("Valid input")
             break
-    return total_type
+    return total_choice
 
 
 def choose_expense_year_total():
+    """
+    Allow the user to choose the expense type.
+    Run a while loop to collect a valid string of data from the user
+    via terminal, which must be a number within 1 and 4.
+    The loop will repeatedly request data until it is valid.
+    """
     while True:
         print("Now type which kind of expense you would like to view:\n\
 1. Monthly Bills;\n2. Car expenses\n3. Food expenses;\n4. Total of Totals\n")
-        exp_type = input("Input 1, 2, 3 or 4\n")
-        max_choice = 4
-        if validate_second_input_choice(exp_type, max_choice):
+        expense_type = input("Input 1, 2, 3 or 4\n")
+        max_types = 4
+        if validate_choice(expense_type, max_types):
             print("Valid input")
             break
-    return exp_type
+    return expense_type
 
 
 def exit_restart():
+    """
+    Request the user to choose between exiting
+    the app or continuing with a new operation.
+    Run a while loop to collect a valid string of data from the user
+    via terminal, which must be a string with value y or n.
+    The loop will repeatedly request data until it is valid
+    """
     while True:
         print("Do you wish to continue with another operation?")
         last_input = input("Input y for yes or n for no\n").lower()
         choice_options = ("y", "n")
-        if validate_first_input_choice(last_input, choice_options):
+        if validate_last_choice(last_input, choice_options):
             print("Valid input")
             break
     return last_input
 
 
-def validate_first_input_choice(value, possible_choice):
+def validate_choice(choice, max_num):
+    """
+    Inside the try, state that the value must be in a specific range.
+    Raise a value error if the string value is not convertible
+    into an integer or if it is outside the range.
+    """
+    try:
+        choice_number = int(choice)
+        if choice_number < 1 or choice_number > max_num:
+            raise ValueError(
+                f"Only values between 1 and {max_num} are acceptable, \
+you entered: {choice}"
+                )
+    except ValueError as e:
+        print(f"Invalid data: {e}, please try again.\n")
+        return False
+
+    return True
+
+
+def validate_input_data(value):
+    """
+    Inside the try, convert the string value into an approximated integer.
+    Raises ValueError if the string is not convertible into an integer.
+    """
+    try:
+        math.ceil(float(value))
+    except ValueError as e:
+        print(f"Invalid data: {e}, please try again.\n")
+        return False
+    return True
+
+
+def validate_last_choice(value, possible_choice):
     """
     Inside the try, state that the value must be included
     in possible choice.
@@ -274,12 +307,10 @@ def validate_first_input_choice(value, possible_choice):
             if len(value) != 1:
                 raise ValueError(
                     f"Only 1 value is required, you entered {len(value)} \
-values."
-                    )
+values.")
         else:
             raise ValueError(
-                f"You have input {value}; your value must be either \
-a, b, c, d, e, f, g or h"
+                f"You have input {value}; your value must be either y or n"
                 )
     except ValueError as e:
         print(f"invalid data: {e}. Please try again.\n")
@@ -288,45 +319,13 @@ a, b, c, d, e, f, g or h"
     return True
 
 
-def validate_second_input_choice(value, choice_num):
-    """
-    it converts the string into integer and raise a value error
-    if it's not a number between 1 and 12 or if the value is not correct.
-    """
-    try:
-        month_number = int(value)
-        if month_number < 1 or month_number > choice_num:
-            raise ValueError(
-                f"Only values between 1 and {choice_num} are acceptable, \
-you entered: {value}"
-                )
-    except ValueError as e:
-        print(f"Invalid data: {e}, please try again.\n")
-        return False
-
-    return True
-
-
-def validate_input_data(value):
-    """
-    Inside the try, converts the string value into an approximated integer.
-    Raises ValueError if string cannot be converted into integer.
-    """
-    try:
-        math.ceil(float(value))
-    except ValueError as e:
-        print(f"Invalid data: {e}, please try again.\n")
-        return False
-    return True
-
-
 def main():
-    worksheet_letter = choose_worksheet()
-    if worksheet_letter != "h":
-        worksheet_to_update = find_worksheet(worksheet_letter)
+    worksheet_num = choose_worksheet()
+    if worksheet_num != "8":
+        worksheet_to_update = find_worksheet(worksheet_num)
         month = choose_month()
-        get_expense_data(worksheet_letter, month, worksheet_to_update)
-        totals_to_update(worksheet_letter)
+        get_expense_data(worksheet_num, month, worksheet_to_update)
+        totals_to_update(worksheet_num)
     else:
         view_total_data()
     last_choice = exit_restart()
