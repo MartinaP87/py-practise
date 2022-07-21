@@ -85,7 +85,7 @@ def get_expense_data():
         print("Please enter how much your expense was.")
         print("Data should be a decimal number.")
         print("Example: 109.08\n")
-        data = math.ceil(float(input("Enter your data here: ")))
+        data = math.ceil(float(input("Enter your data here:\n")))
         if validate_input_data(data):
             print("Data is valid!")
             break
@@ -108,7 +108,7 @@ def update_worksheet(data, chosen_worksheet_num, column, chosen_worksheet):
     chosen_worksheet.update_cell(row, column, data)
     month_name = chosen_worksheet.row_values(1)[int(column) - 1]
     print(f"Your {chosen_worksheet} has been updated:\n\
-The new value for {month_name} is: {data}")
+The new value for {month_name} is: {data}.\n")
 
 
 def totals_to_update(chosen_worksheet_num):
@@ -116,7 +116,7 @@ def totals_to_update(chosen_worksheet_num):
     Assign the arguments to update monthly total
     function in base of the letter choice
     """
-    print("Updating Total Worksheet...")
+    print("Updating Total Worksheet...\n")
     if chosen_worksheet_num == "6":
         update_monthly_totals(1, SHEET.worksheet("car"), "B3")
         totals_of_totals()
@@ -165,7 +165,7 @@ def totals_of_totals():
     the yearly costs of each expense type.
     Update the year totals column with the new values.
     """
-    print("Updating year totals...")
+    print("Updating year totals...\n")
     total_worksheet = SHEET.worksheet("total")
     total_worksheet.batch_clear(["N2:N4"])
     total_list = []
@@ -177,10 +177,10 @@ def totals_of_totals():
         total_list.append(totals)
     total_worksheet.update("N2:N4", total_list)
 
-    print("Updating monthly totals...")
+    print("Updating monthly totals...\n")
     total_worksheet.batch_clear(["B5:N5"])
     update_monthly_totals(2, SHEET.worksheet("total"), "B5")
-    print("Total Worksheet Updated!")
+    print("Total Worksheet Updated!\n")
 
 
 def view_total_data():
@@ -243,31 +243,35 @@ def choose_expense_type():
     return expense_type
 
 
-def compare_budget(chosen_worksheet_num, column):
+def ind_rows_to_compare(chosen_worksheet_num):
     if int(chosen_worksheet_num) <= 5:
         ind_row = 1
     elif int(chosen_worksheet_num) == 6:
         ind_row = 2
     else:
         ind_row = 3
+    return ind_row
+
+
+def compare_budgets(column, ind_row):
     month_column = int(column) + 1
     total_worksheet = SHEET.worksheet("total")
     budget_worksheet = SHEET.worksheet("budget")
-    tot_value = total_worksheet.col_values(month_column)[ind_row]
-    budget = budget_worksheet.col_values(month_column)[ind_row]
     month_name = budget_worksheet.col_values(month_column)[0]
     expense_name = budget_worksheet.col_values(1)[ind_row]
     try:
+        tot_value = total_worksheet.col_values(month_column)[ind_row]
+        budget = budget_worksheet.col_values(month_column)[ind_row] 
         if int(tot_value) <= int(budget):
             difference = int(budget) - int(tot_value)
-            print(f"Congratulations! \
-For {month_name} your {expense_name} are still in the budget!\n\
-You are £{difference} far from exceeding your budget!")
+            print(f"Congratulations!\n \
+For {month_name} your {expense_name} are still in the budget!\n\n\
+You are £{difference} far from exceeding your {expense_name} budget!\n")
         else:
             difference = int(tot_value) - int(budget)
             print(f"Unfortunately, for {month_name} your {expense_name} \
-exceeded your budget of £ {difference}.")
-    except ValueError:
+exceeded your budget of £ {difference}.\n")
+    except:
         print(f"You haven't set a budget for the {expense_name} in \
 {month_name}.\n")
 
@@ -364,7 +368,10 @@ def main():
         expense = get_expense_data()
         update_worksheet(expense, worksheet_num, month, worksheet_to_update)
         totals_to_update(worksheet_num)
-        compare_budget(worksheet_num, month)
+        rows_index = ind_rows_to_compare(worksheet_num)
+        compare_budgets(month, rows_index)
+        monthly_tot_index = 4
+        compare_budgets(month, monthly_tot_index)
     last_choice = exit_restart()
     if last_choice == "y":
         main()
