@@ -116,7 +116,7 @@ def totals_to_update(chosen_worksheet_num):
     Assign the arguments to update monthly total
     function in base of the letter choice
     """
-    print("Updating Total Worksheet...\n")
+    print("Updating total worksheet...\n")
     if chosen_worksheet_num == "6":
         update_monthly_totals(1, SHEET.worksheet("car"), "B3")
         totals_of_totals()
@@ -150,7 +150,7 @@ def calculate_totals(row, chosen_worksheet):
 
 def update_monthly_totals(row, chosen_worksheet, coordinate):
     """
-    Updat total worksheet with the new calculated totals
+    Update total worksheet with the new calculated totals
     in the respective row.
     """
     total_worksheet = SHEET.worksheet("total")
@@ -160,12 +160,12 @@ def update_monthly_totals(row, chosen_worksheet, coordinate):
 
 def totals_of_totals():
     """
-    Clear the previous values in the Year Totals column.
+    Clear the previous values in the Year Total column.
     Sum the values of each row in the total worksheet to view
     the yearly costs of each expense type.
-    Update the year totals column with the new values.
+    Update the Year Total column with the new values.
     """
-    print("Updating Year Totals...\n")
+    print("Updating year totals...\n")
     total_worksheet = SHEET.worksheet("total")
     total_worksheet.batch_clear(["N2:N4"])
     total_list = []
@@ -177,16 +177,16 @@ def totals_of_totals():
         total_list.append(totals)
     total_worksheet.update("N2:N4", total_list)
 
-    print("Updating Monthly Totals...\n")
+    print("Updating monthly totals...\n")
     total_worksheet.batch_clear(["B5:N5"])
     update_monthly_totals(2, SHEET.worksheet("total"), "B5")
-    print("Total Worksheet Updated!\n")
+    print("Your total worksheet is updated!\n")
 
 
 def view_total_data():
     """
-    Access the value of the total expenses for the selected month
-    or the year total of an expense type.
+    Access the value of the Total Expenses for the selected month
+    or the Year Total of an expense type.
     """
     total_type = choose_total()
     total_worksheet = SHEET.worksheet("total")
@@ -234,7 +234,7 @@ def choose_expense_type():
     """
     while True:
         print("Now type which kind of expense you would like to view:\n\
-1. Monthly Bills;\n2. Car expenses\n3. Food expenses;\n4. Total of Totals\n")
+1. Monthly Bills;\n2. Car Expenses\n3. Food Expenses;\n4. Total Expenses\n")
         expense_type = input("Input 1, 2, 3 or 4\n")
         max_types = 4
         if validate_choice(expense_type, max_types):
@@ -243,7 +243,37 @@ def choose_expense_type():
     return expense_type
 
 
+def calculate_total_budget(column, tot_index):
+    """
+    If the cell for the relative month of the Total Expense
+    (in the budget worksheet) is empty,
+    try to update it by adding all the values in the column.
+    If not possible, handle the error by printing a message
+    for the user explaining how to fix the issue.
+    """
+    month_column = int(column) + 1
+    budget_worksheet = SHEET.worksheet("budget")
+    budget_column = budget_worksheet.col_values(month_column)
+    budget_column.pop(0)
+    row_num = tot_index + 1
+    try:
+        budget_column[tot_index]
+    except IndexError:
+        try:
+            int_column = [int(value) for value in budget_column]
+            budget_total = sum(int_column)
+            budget_worksheet.update_cell(row_num, month_column, budget_total)
+        except ValueError:
+            print("Total budget for this month is not present \
+and can't be calculated.\n\
+Please set a value for it or set values for each expense budget.\n")
+
+
 def ind_rows_to_compare(chosen_worksheet_num):
+    """
+    Depending on the worksheet chosen, pick the row for total
+    and budget worksheets that compare_budget function will compare.
+    """
     if int(chosen_worksheet_num) <= 5:
         ind_row = 1
     elif int(chosen_worksheet_num) == 6:
@@ -254,6 +284,13 @@ def ind_rows_to_compare(chosen_worksheet_num):
 
 
 def compare_budgets(column, ind_row):
+    """
+    Access the total values of the expense updated and the expense budget.
+    Subtract the values and print a message to the user.
+    The message compares the values and states the discrepancy.
+    Handle any error if the subtraction is impossible
+    by printing feedback in the terminal.
+    """
     month_column = int(column) + 1
     total_worksheet = SHEET.worksheet("total")
     budget_worksheet = SHEET.worksheet("budget")
@@ -274,25 +311,6 @@ exceeded your budget of £ {difference}.\n")
     except:
         print(f"You haven't set a budget for the {expense_name} in \
 {month_name}.\n")
-
-
-def calculate_total_budget(column, tot_index):
-    month_column = int(column) + 1
-    budget_worksheet = SHEET.worksheet("budget")
-    budget_column = budget_worksheet.col_values(month_column)
-    budget_column.pop(0)
-    row_num = tot_index + 1
-    try:
-        budget_column[tot_index]
-    except IndexError:
-        try:
-            int_column = [int(value) for value in budget_column]
-            budget_total = sum(int_column)
-            budget_worksheet.update_cell(row_num, month_column, budget_total)
-        except ValueError:
-            print("Total budget for this month is not present \
-and can't be calculated.\n\
-Please set a value for it or set values for each expense budget.\n")
 
 
 def exit_restart():
@@ -371,6 +389,9 @@ values.")
 
 
 def main():
+    """
+    Run all program functions depending on the chosen operation
+    """
     worksheet_num = choose_worksheet()
     if worksheet_num == "9":
         view_total_data()
