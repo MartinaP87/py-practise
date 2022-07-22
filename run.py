@@ -22,11 +22,13 @@ def choose_worksheet():
     choices. The loop will repeatedly request data until it is valid.
     """
     while True:
-        print("Please select what kind of expense you are updating \
-today:\n1: Gas bill,\n2: Electricity bill,\n3: Water bill\
-,\n4: Council tax,\n5: Phone bill,\n6: Car expenses,\n7\
-: Food expenses,\n8: Set a monthly budget\n9: If you only want to view the \
-total of your monthly expenses.")
+        print("Please select what kind of operation you would like \
+to perform:\n-Update a worksheet:\n Please select what \
+kind of expense you are updating today:\n 1: Gas bill,\n 2: \
+Electricity bill,\n 3: Water bill\
+,\n 4: Council tax,\n 5: Phone bill,\n 6: Car expenses,\n 7\
+: Food expenses;\n-Set a budget:\n 8: Set a monthly budget\n-View \
+totals\n 9: View the totals of your monthly expenses.")
         worksheet_choice = input("Input 1, 2, 3, 4, 5, 6, 7, 8, 9:\n")
         max_num_choices = 9
         if validate_choice(worksheet_choice, max_num_choices):
@@ -82,14 +84,17 @@ def get_expense_data():
     The loop will repeatedly request data until it is valid.
     """
     while True:
-        print("Please enter how much your expense was.")
-        print("Data should be a decimal number.")
+        print("Please enter the value of your expense or \
+budget, depending on your previous choice.")
+        print("Data should be a decimal or an integer \
+number, which will be automatically approximated.")
         print("Example: 109.08\n")
-        data = math.ceil(float(input("Enter your data here:\n")))
+        data = input("Enter your data here:\n")
         if validate_input_data(data):
             print("Data is valid!")
             break
-    return data
+    data_num = math.ceil(float(data))
+    return data_num
 
 
 def update_worksheet(data, chosen_worksheet_num, column, chosen_worksheet):
@@ -196,13 +201,13 @@ def view_total_data():
         row = len(total_worksheet.col_values(month_column))
         cell = total_worksheet.cell(row, month_column).value
         month_name = total_worksheet.cell(1, month_column).value
-        print(f"The total of your expenses for {month_name} is:\n £ {cell}")
+        print(f"The total of your expenses for {month_name} is:\n £{cell}")
     else:
         exp_year_total = choose_expense_type()
         requested_exp_type = total_worksheet.col_values(1)[int(exp_year_total)]
         requested_value = total_worksheet.col_values(14)[int(exp_year_total)]
         print(f"So far this year your {requested_exp_type} amount is:\n\
-£ {requested_value}")
+£{requested_value}")
 
 
 def choose_total():
@@ -240,7 +245,8 @@ def choose_expense_type():
         if validate_choice(expense_type, max_types):
             print("Valid input")
             break
-    return expense_type
+    expense_type_num = int(expense_type)
+    return expense_type_num
 
 
 def calculate_total_budget(column, tot_index):
@@ -254,19 +260,21 @@ def calculate_total_budget(column, tot_index):
     month_column = int(column) + 1
     budget_worksheet = SHEET.worksheet("budget")
     budget_column = budget_worksheet.col_values(month_column)
-    budget_column.pop(0)
     row_num = tot_index + 1
     try:
         budget_column[tot_index]
     except IndexError:
         try:
+            budget_column.pop(0)
             int_column = [int(value) for value in budget_column]
-            budget_total = sum(int_column)
-            budget_worksheet.update_cell(row_num, month_column, budget_total)
+            if len(int_column) == 3:
+                budget_tot = sum(int_column)
+                budget_worksheet.update_cell(row_num, month_column, budget_tot)
+            else:
+                raise ValueError
         except ValueError:
-            print("Total budget for this month is not present \
-and can't be calculated.\n\
-Please set a value for it or set values for each expense budget.\n")
+            print("You haven't set all expenses budgets for this month.\n\
+Total budget for this month can't be calculated.\n")
 
 
 def ind_rows_to_compare(chosen_worksheet_num):
@@ -307,7 +315,7 @@ You are £{difference} far from exceeding your {expense_name} budget!\n")
         else:
             difference = int(tot_value) - int(budget)
             print(f"Unfortunately, for {month_name} your {expense_name} \
-exceeded your budget of £ {difference}.\n")
+exceeded your budget of £{difference}.\n")
     except:
         print(f"You haven't set a budget for the {expense_name} in \
 {month_name}.\n")
@@ -401,7 +409,10 @@ def main():
         month = choose_month()
         expense = get_expense_data()
         update_worksheet(expense, exp_type, month, worksheet_to_update)
-
+        compare_budgets(month, exp_type)
+        monthly_tot_index = 4
+        calculate_total_budget(month, monthly_tot_index)
+        compare_budgets(month, monthly_tot_index)
     else:
         worksheet_to_update = find_worksheet(worksheet_num)
         month = choose_month()
@@ -419,5 +430,5 @@ def main():
     else:
         print("Have a great day!\nSee you next time!")
 
-
+print("Welcome to your Home Expense Tracker!\n")
 main()
