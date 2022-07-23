@@ -317,7 +317,7 @@ You are £{difference} far from exceeding your {expense_name} budget!\n")
             print(f"Unfortunately, for {month_name} your {expense_name} \
 exceeded your budget of £{difference}.\n")
     except:
-        print(f"You haven't set a budget for the {expense_name} in \
+        print(f"You don't have a budget for the {expense_name} in \
 {month_name}.\n")
 
 
@@ -327,7 +327,7 @@ def exit_restart():
     the app or continuing with a new operation.
     Run a while loop to collect a valid string of data from the user
     via terminal, which must be a string with value y or n.
-    The loop will repeatedly request data until it is valid
+    The loop will repeatedly request data until it is valid.
     """
     while True:
         print("Do you wish to continue with another operation?")
@@ -429,6 +429,7 @@ def main():
         main()
     else:
         print("Have a great day!\nSee you next time!")
+
 
 print("Welcome to your Home Expense Tracker!\n")
 main()
